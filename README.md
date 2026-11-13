@@ -23,8 +23,21 @@ composer require callcocam/laravel-ai-kit:^0.1
 php artisan vendor:publish --tag=ai-kit-config
 ```
 
-Em container sem chave SSH, o Composer precisa de um token do GitHub:
-`COMPOSER_AUTH='{"github-oauth":{"github.com":"<token>"}}'`.
+O repositório é privado: o Composer do projeto (local, CI ou build de produção) precisa de um
+token do GitHub pra baixar. Criar um, **um por projeto que for instalar**:
+
+1. **[github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new)**
+   (fine-grained, não o clássico).
+2. Resource owner: `callcocam`. Repository access: "Only select repositories" → `laravel-ai-kit`.
+3. Permissions → Repository permissions → **Contents: Read-only** (Metadata: Read-only vem junto,
+   obrigatório). Nenhuma outra permissão.
+4. Expiração: sem problema deixar **sem expirar** (token só de leitura deste repo, usado só por
+   instalação/CI; o risco de vazamento é baixo pelo escopo mínimo).
+5. Gerar e usar como `COMPOSER_AUTH='{"github-oauth":{"github.com":"<token>"}}'` no `composer
+   require`/`install`/`update`. Num build Docker, passar por `--mount=type=secret` do BuildKit,
+   nunca em `ARG`/`ENV` da imagem (fica gravado na history). Num CI, guardar como secret do
+   repositório (ex. `gh secret set COMPOSER_AUTH_TOKEN --repo <owner>/<projeto>`) e montar o JSON
+   acima no passo que roda o Composer.
 
 Migrando um projeto que já tem a própria camada de IA (um `AiGate`/`AiRunner` caseiro)? Veja
 [docs/migrar-um-projeto.md](docs/migrar-um-projeto.md): o passo a passo e o que cada projeto que
@@ -36,6 +49,25 @@ A tabela `ai_runs`:
   `runs.table` e `runs.scope_column` para o que já existe. Nenhum dado é migrado.
 - **Projeto novo**: rode `php artisan vendor:publish --tag=ai-kit-migrations`, ajuste a coluna do dono
   (troque por `foreignUlid(...)->constrained()` se quiser a chave estrangeira) e rode `migrate`.
+
+## Chave de cada provedor de IA
+
+Cada provedor tem a própria chave, configurada no `config/ai.php` **do projeto** (não deste
+pacote — isso é do `laravel/ai`), por variável de ambiente. O pacote só decide **para qual**
+provedor a chamada vai (`ai-kit.routes`/`tasks`); quem guarda a chave é o `config/ai.php` de
+sempre.
+
+| Provedor | Onde criar a chave | Variáveis no `.env` |
+|---|---|---|
+| Cloudflare Workers AI | [dash.cloudflare.com](https://dash.cloudflare.com) → a conta → **Workers AI** (o Account ID aparece nessa mesma tela) → **Use REST API** → **Create a Workers AI API Token** (permissões "Workers AI - Read" + "Workers AI - Edit") | `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_AI_TOKEN` |
+| Anthropic (Claude) | [platform.claude.com/settings/workspaces](https://platform.claude.com/settings/workspaces) → **Create workspace** (isola o gasto do projeto; o workspace **Default** não aceita limite de gasto) → clique no workspace criado → **Spend limits** pra definir o teto mensal → tela "Criar chave de API" com Escopo = esse workspace (não "Organização", que vale pra conta inteira) | `ANTHROPIC_API_KEY` |
+| Google Gemini | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) (ou o Google Cloud Console, pra uma chave de projeto/faturamento) | `GEMINI_API_KEY` |
+| OpenAI | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | `OPENAI_API_KEY` |
+
+Depois de criar, declare o provedor em `ai-kit.providers` (Cloudflare e Anthropic já vêm prontos;
+Gemini e OpenAI ficam como referência — copie os termos da tabela "Provedores e termos" mais
+abaixo, conferindo de novo na documentação oficial) e aponte a rota pra ele
+(`ai-kit.routes`/`tasks`, veja "Rotas" mais abaixo).
 
 ## O que é do pacote e o que fica no projeto
 
