@@ -17,10 +17,20 @@ mudança nos outros 20 arquivos que chamavam essas classes).
    (`repositories` + `require`).
 2. **CI e build de produção**: se o projeto tiver GitHub Actions ou build de imagem Docker que
    rode `composer install`, vai precisar de um `COMPOSER_AUTH` com um token que leia este
-   repositório (ele é privado). O No Azul resolveu com um secret `COMPOSER_AUTH_TOKEN` (PAT
-   fine-grained, só leitura deste repo) — veja `.github/workflows/tests.yml`,
-   `.github/workflows/lint.yml`, `Dockerfile.prod` (secret do BuildKit, nunca em ARG/ENV) e
-   `.github/workflows/vps-build-push.yml` do No Azul.
+   repositório (ele é privado). Criar um PAT **fine-grained**, um por projeto que for instalar:
+   - **github.com/settings/personal-access-tokens/new** → Resource owner `callcocam` →
+     Repository access "Only select repositories" → `laravel-ai-kit` → Permissions → Repository
+     permissions → **Contents: Read-only** (Metadata: Read-only vem junto, obrigatório). Nenhuma
+     outra permissão. Expiração: sem problema deixar sem expirar (token só de leitura deste repo,
+     usado só por CI).
+   - Guardar como secret **no repositório do projeto** (não neste), nome `COMPOSER_AUTH_TOKEN`:
+     `gh secret set COMPOSER_AUTH_TOKEN --repo <owner>/<projeto>` ou pela tela
+     `github.com/<owner>/<projeto>/settings/secrets/actions/new`.
+   - Usar como `COMPOSER_AUTH='{"github-oauth":{"github.com":"<token>"}}'` no passo que roda
+     `composer install`/`composer update`; num build Docker, passar por `--mount=type=secret` do
+     BuildKit, nunca em `ARG`/`ENV` da imagem (fica na history). O No Azul tem o exemplo completo
+     em `.github/workflows/tests.yml`, `.github/workflows/lint.yml`, `Dockerfile.prod` e
+     `.github/workflows/vps-build-push.yml`.
 3. **`config/ai-kit.php`**: publicar (`vendor:publish --tag=ai-kit-config`) e preencher
    `runs.table`/`runs.scope_column` com a tabela que o projeto **já tem** (sem migrar dados) —
    ou, se o projeto ainda não registra nada, publicar a migration do pacote
