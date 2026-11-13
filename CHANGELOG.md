@@ -2,6 +2,16 @@
 
 Todas as mudanças de `callcocam/laravel-ai-kit` ficam neste arquivo.
 
+## [0.1.1] - 2026-11-13
+
+### Fixed
+- **`ProviderTerms::cost()` reconhece o modelo datado que a Anthropic devolve.**
+  Pedido com `claude-haiku-4-5`, a resposta trazia `claude-haiku-4-5-20251001`
+  (o Sonnet volta sem data); sem bater com a chave de `rates`, o custo saía
+  `null`. Agora cai para a chave configurada mais específica da qual o modelo é
+  uma versão datada (o sufixo começa com dígito); um sufixo com letra
+  (`-pro`, `-mini`) continua contando como outro modelo, sem preço.
+
 ## [0.1.0] - 2026-11-13
 
 Primeira versão, extraída da camada de IA do No Azul e do Contas da Congregação.

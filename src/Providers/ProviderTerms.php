@@ -71,13 +71,44 @@ final readonly class ProviderTerms implements Arrayable
      */
     public function cost(?string $model, int $inputTokens, int $outputTokens): ?float
     {
-        $rate = $model === null ? null : ($this->rates[$model] ?? null);
+        $rate = $model === null ? null : $this->rateOf($model);
 
         if ($rate === null) {
             return null;
         }
 
         return ($inputTokens * $rate['input'] + $outputTokens * $rate['output']) / 1_000_000;
+    }
+
+    /**
+     * A chave em `rates` que bate com o modelo devolvido pela chamada. Primeiro
+     * o nome exato; sem isso, a chave configurada mais específica da qual o
+     * modelo é uma versão datada — só quando o que vem depois do nome
+     * configurado começa com um dígito (a Anthropic devolve "claude-haiku-4-5"
+     * pedido como "claude-haiku-4-5-20251001" respondido, por exemplo; outros
+     * provedores podem variar de forma parecida). Um sufixo com letra
+     * ("-pro", "-mini") é um modelo diferente, não uma data, e não entra.
+     *
+     * @return array{input: float|int, output: float|int}|null
+     */
+    private function rateOf(string $model): ?array
+    {
+        if (isset($this->rates[$model])) {
+            return $this->rates[$model];
+        }
+
+        $prefixes = array_filter(
+            array_keys($this->rates),
+            fn (string $key): bool => str_starts_with($model, $key.'-') && ctype_digit(mb_substr($model, mb_strlen($key) + 1, 1)),
+        );
+
+        if ($prefixes === []) {
+            return null;
+        }
+
+        usort($prefixes, fn (string $a, string $b): int => mb_strlen($b) <=> mb_strlen($a));
+
+        return $this->rates[$prefixes[0]];
     }
 
     /**
