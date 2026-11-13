@@ -26,6 +26,10 @@ php artisan vendor:publish --tag=ai-kit-config
 Em container sem chave SSH, o Composer precisa de um token do GitHub:
 `COMPOSER_AUTH='{"github-oauth":{"github.com":"<token>"}}'`.
 
+Migrando um projeto que já tem a própria camada de IA (um `AiGate`/`AiRunner` caseiro)? Veja
+[docs/migrar-um-projeto.md](docs/migrar-um-projeto.md): o passo a passo e o que cada projeto que
+já usa (ou vai usar) o pacote precisou mexer.
+
 A tabela `ai_runs`:
 
 - **Projeto que já tem a tabela** (No Azul, Contas): não publique a migration. Aponte
