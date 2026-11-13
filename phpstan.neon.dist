@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - src/
+        - config/
+        - database/
+
+    level: 6
+
+    ignoreErrors:
+        # env() no config do próprio pacote é o certo; o larastan não sabe que o
+        # config/ de um pacote é "o diretório de config".
+        -
+            identifier: larastan.noEnvCallsOutsideOfConfig
+            path: config/ai-kit.php

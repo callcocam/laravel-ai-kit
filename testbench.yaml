@@ -1,0 +1,16 @@
+# Deixa o pacote rodar, não só ser testado:
+#
+#   vendor/bin/testbench ai:check --route=cloudflare     → com CLOUDFLARE_* no ambiente
+#   vendor/bin/testbench ai:compare tests/fixtures/docs --dry-run
+
+providers:
+  - Laravel\Ai\AiServiceProvider
+  - Callcocam\AiKit\AiKitServiceProvider
+
+migrations:
+  - database/migrations
+
+env:
+  - APP_KEY="base64:2fl+Ktv0kdWtQ2QG/Y7g5+Q0Bx0iQ0kY8Yx0iQ0kY8="
+  - DB_CONNECTION=sqlite
+  - "DB_DATABASE=:memory:"

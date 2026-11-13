@@ -1,0 +1,68 @@
+{
+    "name": "callcocam/laravel-ai-kit",
+    "description": "A camada comum de IA dos projetos em cima do laravel/ai: termos e preços dos provedores, rotas por tipo de entrada e por tarefa, porta (AiGate) com política do projeto, execução registrada em ai_runs sem conteúdo, preparo de documentos (PDF → texto ou imagens), uso e custo, e os comandos ai:check, ai:compare e ai:usage.",
+    "keywords": ["laravel", "ai", "laravel-ai", "llm", "anthropic", "cloudflare"],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Claudio Campos",
+            "email": "callcocam@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3",
+        "ext-json": "*",
+        "illuminate/console": "^12.0 || ^13.0",
+        "illuminate/database": "^12.0 || ^13.0",
+        "illuminate/support": "^12.0 || ^13.0",
+        "laravel/ai": "^1.3",
+        "symfony/process": "^7.0 || ^8.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.20",
+        "orchestra/testbench": "^10.0 || ^11.0",
+        "pestphp/pest": "^3.0 || ^4.0",
+        "pestphp/pest-plugin-laravel": "^3.0 || ^4.0"
+    },
+    "suggest": {
+        "ext-gd": "Não é exigida em produção; só os testes geram imagens com ela."
+    },
+    "autoload": {
+        "psr-4": {
+            "Callcocam\\AiKit\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Callcocam\\AiKit\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "lint": "pint --parallel",
+        "test:lint": "pint --parallel --test",
+        "test:types": "phpstan analyse",
+        "test:unit": "pest",
+        "test": [
+            "@test:lint",
+            "@test:types",
+            "@test:unit"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Callcocam\\AiKit\\AiKitServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
